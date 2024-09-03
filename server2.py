@@ -1,9 +1,19 @@
 from flask import Flask, request, jsonify, render_template, session
 import os
 import secrets
+from flask_socketio import SocketIO
 
 app = Flask(__name__)
 app.secret_key = secrets.token_hex(32)  # Generate a secure secret key
+socketio = SocketIO(app)
+
+@socketio.on('disconnect')
+def handle_disconnect():
+    print('Client disconnected')
+    shutdown_server()
+
+def shutdown_server():
+    os.kill(os.getpid(), signal.SIGINT)
 
 # Function to handle graceful shutdown
 def signal_handler(sig, frame):
@@ -71,5 +81,8 @@ def chat():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
+# if __name__ == '__main__':
+#     app.run(debug=True)
+    
 if __name__ == '__main__':
-    app.run(debug=True)
+    socketio.run(app)
