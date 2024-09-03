@@ -1,12 +1,19 @@
+document.getElementById('sendButton').addEventListener('click', function() {
+    sendMessage();
+});
+
 document.getElementById('inputBox').addEventListener('keydown', function(event) {
     if (event.key === 'Enter') {
         if (event.shiftKey) {
             // If Shift + Enter, insert a newline without sending
-            event.preventDefault();  // Prevents the default behavior of creating a new line
+            event.preventDefault();  // Prevents the default behavior of submitting the form
             let start = this.selectionStart;
             let end = this.selectionEnd;
             this.value = this.value.substring(0, start) + '\n' + this.value.substring(end);
             this.selectionStart = this.selectionEnd = start + 1;
+
+            // Ensure the textarea scrolls to the cursor position
+            this.scrollTop = this.scrollHeight;
         } else {
             // If only Enter, prevent the default action and send the message
             event.preventDefault();
