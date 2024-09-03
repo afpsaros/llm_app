@@ -1,18 +1,19 @@
-from flask import Flask, request, jsonify, render_template
+from flask import Flask, request, jsonify, render_template, session
 from LLM_Clients import OpenAIClient, ClaudeClient, GeminiClient
 import signal
 import sys
+import secrets
 
 app = Flask(__name__)
+app.secret_key = secrets.token_hex(32)
 
 # Function to handle graceful shutdown
 def signal_handler(sig, frame):
+    print("Gracefully shutting down...")
     sys.exit(0)
 
 # Register the signal handler for Ctrl+C
 signal.signal(signal.SIGINT, signal_handler)
-
-LLM = None
 
 @app.route('/')
 def home():
@@ -20,24 +21,35 @@ def home():
 
 @app.route('/select_model', methods=['POST'])
 def select_model():
-    global LLM
     data = request.json
     model = data.get('model')
 
     if model == "OpenAI":
-        LLM = OpenAIClient()
+        session['llm'] = 'OpenAIClient'
     elif model == "Claude":
-        LLM = ClaudeClient()
+        session['llm'] = 'ClaudeClient'
     elif model == "Gemini":
-        LLM = GeminiClient()
+        session['llm'] = 'GeminiClient'
     else:
         return jsonify({"error": "Invalid model selection"}), 400
 
     return jsonify({"status": "Model selected"}), 200
 
+def get_llm_client():
+    model = session.get('llm')
+    if model == 'OpenAIClient':
+        return OpenAIClient()
+    elif model == 'ClaudeClient':
+        return ClaudeClient()
+    elif model == 'GeminiClient':
+        return GeminiClient()
+    else:
+        return None
+
 # API endpoint to handle chat requests
 @app.route('/chat', methods=['POST'])
 def chat():
+    LLM = get_llm_client()
     if not LLM:
         return jsonify({"error": "Model not selected"}), 400
 
