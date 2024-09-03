@@ -2,11 +2,13 @@ class LLMClient:
     def __init__(self, client):
         self.client = client
 
-    def chat_with_llm(self, conversation_history):
-        # Replace this with the actual call to your company's LLM
-        response = self.client.generate(
-            prompt=conversation_history,
-            model="custom-llm-model"
+    def query_llm(self, conversation_history, model, temp=0.2):
+        # The conversation history includes both user and assistant messages
+        completions = self.client.chat.completions.create(
+            model=model,
+            messages=conversation_history,
+            temperature=temp,
+            stream=False
         )
-        assistant_reply = response['content']
-        return assistant_reply
+        response = completions.choices[0].message['content']
+        return response
