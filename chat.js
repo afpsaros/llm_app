@@ -1,9 +1,21 @@
-document.getElementById('sendButton').addEventListener('click', sendMessage);
+document.getElementById('inputBox').addEventListener('keydown', function(event) {
+    if (event.key === 'Enter') {
+        if (event.shiftKey) {
+            // If Shift + Enter, insert a newline without sending
+            this.value += '\n';
+        } else {
+            // If only Enter, prevent the default action (which is to add a newline)
+            event.preventDefault();
+            // Trigger the sendMessage function
+            sendMessage();
+        }
+    }
+});
 
 let chatbox = document.getElementById('chatbox');
 
 async function sendMessage() {
-    let userInput = document.getElementById('inputBox').value;
+    let userInput = document.getElementById('inputBox').value.trim();
     if (!userInput) return;
 
     // Add user's message to the chatbox
