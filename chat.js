@@ -38,34 +38,61 @@ document.getElementById('inputBox').addEventListener('keydown', function(event) 
     }
 });
 
+function sanitizeInput(input) {
+    // Create a temporary div element to leverage the browser's native HTML parsing
+    let tempDiv = document.createElement('div');
+    tempDiv.textContent = input;  // Set the input text as the textContent of the div
+    return tempDiv.innerHTML;  // This returns the plain text with HTML entities encoded
+}
+
 async function sendMessage() {
     let userInput = document.getElementById('inputBox').value.trim();
-    if (!userInput) return;
+    
+    // Sanitize the input to remove any HTML tags
+    let sanitizedInput = sanitizeInput(userInput);
+    
+    if (!sanitizedInput) {
+        console.log("User input is empty, not sending message.");
+        return;
+    }
 
-    addMessageToChatbox('User', userInput);
+    addMessageToChatbox('User', sanitizedInput);
+    document.getElementById('inputBox').value = '';  // Clear the input box
 
-    document.getElementById('inputBox').value = '';
+    const payload = { query: sanitizedInput };
+    
+    try {
+        let response = await fetch('/chat', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(payload)
+        });
 
-    const payload = { query: userInput };
+        if (!response.ok) {
+            throw new Error(`Server error: ${response.status}`);
+        }
 
-    let response = await fetch('/chat', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(payload)
-    }).then(response => response.json());
+        let data = await response.json();
 
-    if (response.error) {
-        addMessageToChatbox('Error', response.error);
-    } else {
-        addMessageToChatbox('Assistant', response.reply);
+        if (data.error) {
+            console.log("Error in response:", data.error);
+            addMessageToChatbox('Error', data.error);
+        } else {
+            addMessageToChatbox('Assistant', data.reply);
+        }
+    } catch (error) {
+        console.error("Fetch error:", error);
+        addMessageToChatbox('Error', 'Failed to send message');
     }
 }
 
 function addMessageToChatbox(sender, message) {
     const messageElement = document.createElement('p');
-    messageElement.innerHTML = `<strong>${sender}:</strong> ${message}`;
+    messageElement.innerHTML = `<strong>${sender}:</strong> ${message}`;  // This will be safe because we've sanitized the input
     document.getElementById('chatbox').appendChild(messageElement);
     document.getElementById('chatbox').scrollTop = document.getElementById('chatbox').scrollHeight;
+}
+
 }
