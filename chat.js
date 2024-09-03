@@ -1,7 +1,6 @@
 document.getElementById('sendButton').addEventListener('click', sendMessage);
 
 let chatbox = document.getElementById('chatbox');
-let conversationHistory = [];
 
 async function sendMessage() {
     let userInput = document.getElementById('inputBox').value;
@@ -9,25 +8,33 @@ async function sendMessage() {
 
     // Add user's message to the chatbox
     addMessageToChatbox('User', userInput);
-    conversationHistory.push({role: "user", content: userInput});
 
     // Clear the input field
     document.getElementById('inputBox').value = '';
 
-    // Call the backend to get the AI response
-    let assistantResponse = await fetch('/chat', {
+    // Prepare the payload
+    const payload = {
+        query: userInput
+    };
+
+    // Send the query to the server
+    let response = await fetch('/chat', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
         },
-        body: JSON.stringify({history: conversationHistory})
+        body: JSON.stringify(payload)
     }).then(response => response.json());
 
-    addMessageToChatbox('Assistant', assistantResponse.reply);
-    conversationHistory.push({role: "assistant", content: assistantResponse.reply});
+    // Check for errors
+    if (response.error) {
+        addMessageToChatbox('Error', response.error);
+    } else {
+        addMessageToChatbox('Assistant', response.reply);
+    }
 }
 
 function addMessageToChatbox(sender, message) {
     chatbox.innerHTML += `<p><strong>${sender}:</strong> ${message}</p>`;
-    chatbox.scrollTop = chatbox.scrollHeight; // Scroll to the bottom
+    chatbox.scrollTop = chatbox.scrollHeight;  // Scroll to the bottom
 }
