@@ -45,6 +45,12 @@ function sanitizeInput(input) {
     return tempDiv.innerHTML;  // This returns the plain text with HTML entities encoded
 }
 
+function escapeHTML(input) {
+    let tempDiv = document.createElement('div');
+    tempDiv.textContent = input;  // Escapes HTML by setting textContent
+    return tempDiv.innerHTML;  // Returns the escaped HTML string
+}
+
 async function sendMessage() {
     let userInput = document.getElementById('inputBox').value.trim();
     
@@ -80,7 +86,9 @@ async function sendMessage() {
             console.log("Error in response:", data.error);
             addMessageToChatbox('Error', data.error);
         } else {
-            addMessageToChatbox('Assistant', data.reply);
+            // Escape HTML and wrap the response in <pre><code> blocks
+            let escapedReply = escapeHTML(data.reply);
+            addMessageToChatbox('Assistant', `<pre><code>${escapedReply}</code></pre>`);
         }
     } catch (error) {
         console.error("Fetch error:", error);
@@ -90,9 +98,11 @@ async function sendMessage() {
 
 function addMessageToChatbox(sender, message) {
     const messageElement = document.createElement('p');
-    messageElement.innerHTML = `<strong>${sender}:</strong> ${message}`;  // This will be safe because we've sanitized the input
+    
+    // The message is inserted as innerHTML since we escape the content beforehand
+    messageElement.innerHTML = `<strong>${sender}:</strong> ${message}`;
+    
     document.getElementById('chatbox').appendChild(messageElement);
     document.getElementById('chatbox').scrollTop = document.getElementById('chatbox').scrollHeight;
 }
 
-}
