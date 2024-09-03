@@ -57,6 +57,8 @@ async function sendMessage() {
 }
 
 function addMessageToChatbox(sender, message) {
-    chatbox.innerHTML += `<p><strong>${sender}:</strong> ${message}</p>`;
+    const messageElement = document.createElement('p');
+    messageElement.innerHTML = `<strong>${sender}:</strong> ${message}`;
+    chatbox.appendChild(messageElement);
     chatbox.scrollTop = chatbox.scrollHeight;  // Scroll to the bottom
 }
