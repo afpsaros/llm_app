@@ -1,9 +1,10 @@
-from flask import Flask, request, jsonify, render_template
+from flask import Flask, request, jsonify, render_template, session
 from LLM_Clients import OpenAIClient, ClaudeClient, GeminiClient
 import signal
 import sys
 
 app = Flask(__name__)
+app.secret_key = 'your_secret_key'  # Required for session management
 
 # Function to handle graceful shutdown
 def signal_handler(sig, frame):
@@ -12,6 +13,15 @@ def signal_handler(sig, frame):
 
 # Register the signal handler for Ctrl+C
 signal.signal(signal.SIGINT, signal_handler)
+
+# Function to run authorization
+def run_authorizer(a_number="xxx"):
+    # Implement your company's authentication logic here
+    # Replace with the actual authorization logic
+    # Assuming this function returns True for success and False for failure
+    print(f"Running authorizer with a_number={a_number}")
+    success = True  # Replace with real logic
+    return success
 
 # Lazy loading of LLM client
 def get_llm_client(model, auth):
@@ -34,15 +44,14 @@ def select_model():
     model = data.get('model')
     auth = data.get('auth')
 
-    # Validate the model and auth
-    LLM = get_llm_client(model, auth)
-    if LLM:
-        # Store the LLM and auth details in the session
+    # Run authorizer with the provided password/auth
+    if run_authorizer(a_number=auth):
+        # If authorization is successful, store the LLM and auth details in the session
         session['llm'] = model
         session['auth'] = auth
-        return jsonify({"status": "Model selected"}), 200
+        return jsonify({"status": "Model selected and authenticated"}), 200
     else:
-        return jsonify({"error": "Invalid model or authentication"}), 400
+        return jsonify({"error": "Invalid authentication"}), 401
 
 @app.route('/chat', methods=['POST'])
 def chat():
@@ -69,4 +78,4 @@ def chat():
         return jsonify({"error": str(e)}), 500
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=8888, debug=True)
+    app.run(debug=True)
