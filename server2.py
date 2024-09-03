@@ -1,10 +1,9 @@
 from flask import Flask, request, jsonify, render_template, session
-from LLM_Clients import OpenAIClient, ClaudeClient, GeminiClient
-import signal
-import sys
+import os
+import secrets
 
 app = Flask(__name__)
-app.secret_key = 'your_secret_key'  # Required for session management
+app.secret_key = secrets.token_hex(32)  # Generate a secure secret key
 
 # Function to handle graceful shutdown
 def signal_handler(sig, frame):
@@ -14,23 +13,22 @@ def signal_handler(sig, frame):
 # Register the signal handler for Ctrl+C
 signal.signal(signal.SIGINT, signal_handler)
 
-# Function to run authorization
-def run_authorizer(a_number="xxx"):
-    # Implement your company's authentication logic here
-    # Replace with the actual authorization logic
-    # Assuming this function returns True for success and False for failure
+# Function to run authorization using the provided password
+def run_authorizer(a_number="1234", password=""):
     print(f"Running authorizer with a_number={a_number}")
-    success = True  # Replace with real logic
-    return success
+    os.environ["username"] = a_number
+    os.environ["pass"] = password  # Simulate getpass by setting this directly
+    # No need for a return value since the success or failure will be handled later
+    print("Environment variables set. Authentication will proceed with provided credentials.")
 
 # Lazy loading of LLM client
-def get_llm_client(model, auth):
+def get_llm_client(model):
     if model == 'OpenAI':
-        return OpenAIClient(auth)  # Pass auth details to the client
+        return OpenAIClient(os.environ["pass"])  # Pass auth details to the client
     elif model == 'Claude':
-        return ClaudeClient(auth)
+        return ClaudeClient(os.environ["pass"])
     elif model == 'Gemini':
-        return GeminiClient(auth)
+        return GeminiClient(os.environ["pass"])
     else:
         return None
 
@@ -44,24 +42,20 @@ def select_model():
     model = data.get('model')
     auth = data.get('auth')
 
-    # Run authorizer with the provided password/auth
-    if run_authorizer(a_number=auth):
-        # If authorization is successful, store the LLM and auth details in the session
-        session['llm'] = model
-        session['auth'] = auth
-        return jsonify({"status": "Model selected and authenticated"}), 200
-    else:
-        return jsonify({"error": "Invalid authentication"}), 401
+    # Run authorizer with the provided password
+    run_authorizer(a_number="1234", password=auth)
+    # Store the LLM and auth details in the session
+    session['llm'] = model
+    return jsonify({"status": "Model selected and authenticated"}), 200
 
 @app.route('/chat', methods=['POST'])
 def chat():
     model = session.get('llm')
-    auth = session.get('auth')
 
-    if not model or not auth:
+    if not model or not os.environ.get("pass"):
         return jsonify({"error": "Model not selected or authenticated"}), 400
 
-    LLM = get_llm_client(model, auth)
+    LLM = get_llm_client(model)
     if not LLM:
         return jsonify({"error": "Unable to initialize the LLM client"}), 500
 
