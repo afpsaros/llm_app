@@ -46,9 +46,25 @@
 </head>
 <body>
     <h2>Chat with LLM</h2>
-    <div id="chatbox"></div>
-    <textarea id="inputBox" placeholder="Type your message here..."></textarea>
-    <button id="sendButton">Send</button>
+
+    <!-- Model Selection Form -->
+    <form id="modelSelectionForm">
+        <label for="model">Choose the LLM model:</label><br>
+        <input type="radio" id="openai" name="model" value="OpenAI" checked>
+        <label for="openai">OpenAI</label><br>
+        <input type="radio" id="claude" name="model" value="Claude">
+        <label for="claude">Claude</label><br>
+        <input type="radio" id="gemini" name="model" value="Gemini">
+        <label for="gemini">Gemini</label><br><br>
+        <button type="submit">Start Chat</button>
+    </form>
+
+    <!-- Chat Interface -->
+    <div id="chatInterface" style="display:none;">
+        <div id="chatbox"></div>
+        <textarea id="inputBox" placeholder="Type your message here..."></textarea>
+        <button id="sendButton">Send</button>
+    </div>
 
     <script src="{{ url_for('static', filename='chat.js') }}"></script>
 </body>

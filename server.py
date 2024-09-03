@@ -7,40 +7,40 @@ app = Flask(__name__)
 
 # Function to handle graceful shutdown
 def signal_handler(sig, frame):
-    print("Gracefully shutting down...")
     sys.exit(0)
 
 # Register the signal handler for Ctrl+C
 signal.signal(signal.SIGINT, signal_handler)
 
-# Function to initialize the LLM client
-def initialize_llm():
-    print("Choose the LLM model to use:")
-    print("1. OpenAI")
-    print("2. Claude")
-    print("3. Gemini")
-    choice = input("Enter the number of the model you want to use: ")
-
-    if choice == "1":
-        return OpenAIClient()
-    elif choice == "2":
-        return ClaudeClient()
-    elif choice == "3":
-        return GeminiClient()
-    else:
-        print("Invalid choice. Please run the app again and select a valid option.")
-        sys.exit(1)
+LLM = None
 
 @app.route('/')
 def home():
-    # Initialize LLM client on page refresh
-    global LLM
-    LLM = initialize_llm()
     return render_template('index.html')
+
+@app.route('/select_model', methods=['POST'])
+def select_model():
+    global LLM
+    data = request.json
+    model = data.get('model')
+
+    if model == "OpenAI":
+        LLM = OpenAIClient()
+    elif model == "Claude":
+        LLM = ClaudeClient()
+    elif model == "Gemini":
+        LLM = GeminiClient()
+    else:
+        return jsonify({"error": "Invalid model selection"}), 400
+
+    return jsonify({"status": "Model selected"}), 200
 
 # API endpoint to handle chat requests
 @app.route('/chat', methods=['POST'])
 def chat():
+    if not LLM:
+        return jsonify({"error": "Model not selected"}), 400
+
     data = request.json
     user_query = data.get('query', "")
     
@@ -48,12 +48,10 @@ def chat():
         return jsonify({"error": "Empty query"}), 400
     
     try:
-        # Query the selected LLM and get the response
         response_text = LLM.query_llm(user_query, temp=0.2)
         return jsonify({"reply": response_text})
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
 if __name__ == '__main__':
-    # Initialize the LLM client for the first time
     app.run(debug=True)
