@@ -44,23 +44,28 @@ function sanitizeInput(input) {
     return tempDiv.innerHTML;  // This returns the plain text with HTML entities encoded
 }
 
+function escapeHTML(input) {
+    let tempDiv = document.createElement('div');
+    tempDiv.textContent = input;  // Escapes HTML by setting textContent
+    return tempDiv.innerHTML;  // Returns the escaped HTML string
+}
+
 async function sendMessage() {
     let userInput = document.getElementById('inputBox').value.trim();
-
+    
     // Sanitize the input to remove any HTML tags
     let sanitizedInput = sanitizeInput(userInput);
-
+    
     if (!sanitizedInput) {
         console.log("User input is empty, not sending message.");
         return;
     }
 
-    // Display the user's query in the chatbox while preserving formatting
-    addMessageToChatbox('User', `<pre><code>${sanitizeInput(userInput)}</code></pre>`);
+    addMessageToChatbox('User', sanitizedInput);
     document.getElementById('inputBox').value = '';  // Clear the input box
 
     const payload = { query: sanitizedInput };
-
+    
     try {
         let response = await fetch('/chat', {
             method: 'POST',
@@ -92,10 +97,10 @@ async function sendMessage() {
 
 function addMessageToChatbox(sender, message) {
     const messageElement = document.createElement('p');
-
+    
     // The message is inserted as innerHTML since we escape the content beforehand
     messageElement.innerHTML = `<strong>${sender}:</strong> ${message}`;
-
+    
     document.getElementById('chatbox').appendChild(messageElement);
     document.getElementById('chatbox').scrollTop = document.getElementById('chatbox').scrollHeight;
 }
