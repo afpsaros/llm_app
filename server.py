@@ -13,8 +13,8 @@ def signal_handler(sig, frame):
 # Register the signal handler for Ctrl+C
 signal.signal(signal.SIGINT, signal_handler)
 
-# Prompt user to choose the LLM client at startup
-def choose_llm():
+# Function to initialize the LLM client
+def initialize_llm():
     print("Choose the LLM model to use:")
     print("1. OpenAI")
     print("2. Claude")
@@ -31,11 +31,11 @@ def choose_llm():
         print("Invalid choice. Please run the app again and select a valid option.")
         sys.exit(1)
 
-LLM = choose_llm()
-
-# Route to serve the main chat page
 @app.route('/')
 def home():
+    # Initialize LLM client on page refresh
+    global LLM
+    LLM = initialize_llm()
     return render_template('index.html')
 
 # API endpoint to handle chat requests
@@ -55,4 +55,5 @@ def chat():
         return jsonify({"error": str(e)}), 500
 
 if __name__ == '__main__':
+    # Initialize the LLM client for the first time
     app.run(debug=True)
