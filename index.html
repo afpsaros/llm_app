@@ -15,9 +15,11 @@
             height: 300px;
             border: 1px solid #ccc;
             padding: 10px;
-            overflow-y: scroll;
+            overflow-y: scroll;  /* Only allow vertical scrolling */
+            overflow-x: hidden;  /* Prevent horizontal scrolling */
             background-color: white;
             margin-bottom: 10px;
+            word-wrap: break-word;  /* Break long words or URLs */
         }
         #inputBox {
             width: 100%;
