@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chat with LLM</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #f4f4f4;
+        }
+        #chatbox {
+            width: 100%;
+            height: 300px;
+            border: 1px solid #ccc;
+            padding: 10px;
+            overflow-y: scroll;
+            background-color: white;
+            margin-bottom: 10px;
+        }
+        #inputBox {
+            width: 100%;
+            height: 50px;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            resize: none;
+            line-height: 1.5;
+            font-family: Arial, sans-serif;
+            box-sizing: border-box;
+        }
+        #sendButton {
+            padding: 10px 20px;
+            margin-top: 10px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        #sendButton:hover {
+            background-color: #0056b3;
+        }
+    </style>
+</head>
+<body>
+    <h2>Chat with LLM</h2>
+
+    <!-- Model Selection and Authentication Form -->
+    <form id="authForm">
+        <label for="model">Choose the LLM model:</label><br>
+        <input type="radio" id="openai" name="model" value="OpenAI" checked>
+        <label for="openai">OpenAI</label><br>
+        <input type="radio" id="claude" name="model" value="Claude">
+        <label for="claude">Claude</label><br>
+        <input type="radio" id="gemini" name="model" value="Gemini">
+        <label for="gemini">Gemini</label><br><br>
+        <label for="auth">Enter Authentication (API Key or Password):</label><br>
+        <input type="password" id="auth" name="auth"><br><br>
+        <button type="submit">Start Chat</button>
+    </form>
+
+    <!-- Chat Interface -->
+    <div id="chatInterface" style="display:none;">
+        <div id="chatbox"></div>
+        <textarea id="inputBox" placeholder="Type your message here..."></textarea>
+        <button id="sendButton">Send</button>
+    </div>
+
+    <script src="{{ url_for('static', filename='chat.js') }}"></script>
+</body>
+</html>
